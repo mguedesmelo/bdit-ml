@@ -3,13 +3,23 @@ import util as util
 from sklearn.svm import LinearSVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+import seaborn as sns
 
+#Lendo todos os dados dos seccionadores
 data_seccionadores = pd.read_csv('dados/seccionador.csv', sep=",", encoding='ISO-8859-1', low_memory=False)
 
+#Eliminando as colunas que não serão trabalhadas
 data = util.clear_data(data_seccionadores)
+#Renomeia as colunas para um nome mais amigavel
 data = util.rename_columns(data)
-data_tensao_nominal = util.clear_tensao_nominal(data)
-data_tensao_nominal = util.apply_one_hot_encoding(data_tensao_nominal, ['localizacao','nome_fabricante','sigla_subestacao'])
+
+#Eliminando as colunas de predicao que não serão trabalhadas e as linhas em branco (missings)
+data = util.clear_tensao_nominal(data)
+#data.to_csv('dados/data.csv')
+
+#Aplicando a transformacao one hot encoding que
+#transforma colunas categóricas em colunas binárias (algoritmos de ML não entendem texto. Ex. transforma cor dos olhos em número)
+data_tensao_nominal = util.apply_one_hot_encoding(data,['localizacao','nome_fabricante','sigla_subestacao'])
 
 x = data_tensao_nominal.drop(["tensao_nominal"], axis=1)
 x.head()
@@ -31,3 +41,10 @@ model.fit(treino_x, treino_y)
 predictions = model.predict(teste_x)
 accuracy = accuracy_score(teste_y, predictions) * 100
 print("A acurácia da tensao nominal foi %.2f%%" % accuracy)
+
+#print(treino_y.value_counts())
+#print(teste_y.value_counts())
+
+ax = sns.relplot(data=data,x="tensao_nominal",y="localizacao",hue="localizacao")
+ax.figure.set_size_inches(w=24,h=4)
+print(ax)

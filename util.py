@@ -28,6 +28,13 @@ REMOVER ESTES CAMPOS
 """
 
 def clear_data(data):
+    """
+    Elimina as colunas que não serão trabalhadas e retorna um DataFrame
+
+    :param data: DataFrame
+
+    :return DataFrame somente com as colunas que serao trabalhadas
+    """
     # eliminando colunas que nao serao trabalhadas
     # axis = 1 --> remove colunas
     return data.drop(["Transmissora_SIGET",
@@ -88,6 +95,13 @@ def clear_data(data):
 
 
 def rename_columns(data):
+    """
+    Renomeia as colunas para um nome mais amigavel
+
+    :param data: DataFrame
+
+    :return DataFrame com as colunas renomeadas
+    """
     mapa = {
         # CAMPOS PARA PREDIÇÃO
         "Tensao_Nominal": "tensao_nominal",
@@ -112,7 +126,14 @@ def rename_columns(data):
 
 
 def clear_tensao_nominal(data):
-    # eliminando colunas que nao serao trabalhadas
+    """
+    Elimina colunas que nao serao trabalhadas na predição, elimina missings e efetua uma limpeza no cacastro
+
+    :param data: DataFrame
+
+    :return: DataFrame novo com as alterações aplicadas
+    """
+    #
     # axis = 1 --> remove colunas
     to_return = data.drop(["tensao_nominal_equipamento",
                            "tensao_maxima_suporte_1h",
@@ -128,10 +149,21 @@ def clear_tensao_nominal(data):
                            ], axis=1)
     # eliminando missings - linhas em branco das colunas a serem classificaads
     to_return = to_return.dropna()
-    to_return = replace_values_tensao_nominal(to_return)
+    to_return = replace_values_localizacao(to_return)
     return to_return
 
-def replace_values_tensao_nominal(data):
+def replace_values_localizacao(data):
+    """
+    Efetua uma limpeza no cadastro dos campos. Exemplo, o campo localizacao possui registros com caracteres inválidos\n
+    Valor atual = Novo valor\n
+    'Outro' = 'outros'\n
+    'Outros' = 'outros'\n
+    'Outro#P' = 'outros'\n
+
+    :param data: DataFrame
+
+    :return: DataFrame com os valores substituidos
+    """
     data.loc[data['localizacao'] == 'Transformador', 'localizacao'] = 'transformador'
     data.loc[data['localizacao'] == 'Transformador#P', 'localizacao'] = 'transformador'
     data.loc[data['localizacao'] == 'Linha de transmissão', 'localizacao'] = 'linha_de_transmissao'
@@ -148,6 +180,26 @@ def replace_values_tensao_nominal(data):
     return data
 
 def apply_one_hot_encoding(data, fields):
+    """
+    Aplica a técnica one hot encoding para transformar os dados texto em novas colunas com valores 0 ou 1. Exemplo:\n
+    Transforma o campo localizacao:\n
+    localizacao\n
+    transformador\n
+    outros\n
+    reator\n
+    \n
+    Nisto:\n
+    transformador | outros | reator\n
+    1 | 0 | 0\n
+    0 | 1 | 0\n
+    0 | 0 | 1\n
+
+    :param data: DataFrame
+
+    :param fields: Campos que serão aplicados a técnica
+
+    :return: DataFrame com as transformações
+    """
     to_return = data
     for field in fields:
         # perform one hot encoding using get_dummies
