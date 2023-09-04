@@ -33,9 +33,8 @@ def clear_data(data):
 
     :param data: DataFrame
 
-    :return DataFrame somente com as colunas que serao trabalhadas
+    :return DataFrame somente com as colunas que serão trabalhadas
     """
-    # eliminando colunas que nao serao trabalhadas
     # axis = 1 --> remove colunas
     return data.drop(["Transmissora_SIGET",
                       "Num_Patrimonio",
@@ -96,7 +95,7 @@ def clear_data(data):
 
 def rename_columns(data):
     """
-    Renomeia as colunas para um nome mais amigavel
+    Renomeia as colunas para um nome mais amigável
 
     :param data: DataFrame
 
@@ -124,10 +123,9 @@ def rename_columns(data):
     }
     return data.rename(columns=mapa)
 
-
 def clear_tensao_nominal(data):
     """
-    Elimina colunas que nao serao trabalhadas na predição, elimina missings e efetua uma limpeza no cacastro
+    Elimina colunas que não serão trabalhadas na predição, elimina missings e efetua uma limpeza no cadastro
 
     :param data: DataFrame
 
@@ -149,12 +147,12 @@ def clear_tensao_nominal(data):
                            ], axis=1)
     # eliminando missings - linhas em branco das colunas a serem classificaads
     to_return = to_return.dropna()
-    to_return = replace_values_localizacao(to_return)
+    to_return = replace_invalid_values(to_return)
     return to_return
 
-def replace_values_localizacao(data):
+def replace_invalid_values(data):
     """
-    Efetua uma limpeza no cadastro dos campos. Exemplo, o campo localizacao possui registros com caracteres inválidos\n
+    Substitui valores inválidos no cadastro. Exemplo, o campo localizacao possui registros com caracteres inválidos\n
     Valor atual = Novo valor\n
     'Outro' = 'outros'\n
     'Outros' = 'outros'\n
@@ -177,11 +175,20 @@ def replace_values_localizacao(data):
     data.loc[data['localizacao'] == 'Desenergizados', 'localizacao'] = 'desenergizados'
     data.loc[data['localizacao'] == 'Barra', 'localizacao'] = 'barra'
     data.loc[data['localizacao'] == 'Compensador Estático', 'localizacao'] = 'compensador_estatico'
+
+    data.loc[data['tensao_nominal'] == '230.00', 'tensao_nominal'] = '230.0'
+    data.loc[data['tensao_nominal'] == '230.0', 'tensao_nominal'] = '230.0'
+    data.loc[data['tensao_nominal'] == '230,0', 'tensao_nominal'] = '230.0'
+    data.loc[data['tensao_nominal'] == '69.0', 'tensao_nominal'] = '69.0'
+    data.loc[data['tensao_nominal'] == '69,0', 'tensao_nominal'] = '69.0'
+    data.loc[data['tensao_nominal'] == '500.0', 'tensao_nominal'] = '500.0'
+    data.loc[data['tensao_nominal'] == '500,0', 'tensao_nominal'] = '500.0'
+
     return data
 
 def apply_one_hot_encoding(data, fields):
     """
-    Aplica a técnica one hot encoding para transformar os dados texto em novas colunas com valores 0 ou 1. Exemplo:\n
+    Aplica a técnica One Hot Encoding para transformar os dados texto em novas colunas com valores 0 ou 1. Exemplo:\n
     Transforma o campo localizacao:\n
     localizacao\n
     transformador\n
